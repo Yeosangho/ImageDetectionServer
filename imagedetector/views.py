@@ -17,7 +17,7 @@ from PIL import Image
 from imagedetector.utils import label_map_util
 
 from imagedetector.utils import visualization_utils as vis_util
-if tf.__version__ != '1.3.0':
+if tf.__version__ != '1.4.1':
   raise ImportError('Please upgrade your tensorflow installation to v1.4.0!')
 # This is needed to display the images.
 # This is needed since the notebook is stored in the object_detection folder.
