@@ -42,6 +42,7 @@ NUM_CLASSES = 90
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATICDIR = os.path.join(BASE_DIR, 'static/')
+detection_graph = tf.Graph()
 
 def load_image_into_numpy_array(image):
   (im_width, im_height) = image.size
@@ -50,15 +51,14 @@ def load_image_into_numpy_array(image):
 # Create your views here.
 def index(request):
     return render(request, 'home/index.html', {})
-
-def show_image(request):
+def ready_model(request):
+    global detection_graph
     modelIdx = request.GET['model']
-    imageIdx = request.GET['image']
+
     MODEL_NAME = MODELS[int(modelIdx)]
     KEY = MODEL_NAME + '.tar.gz'  # replace with your object key
     FILEDIR = os.path.join(BASE_DIR, MODEL_NAME)
     MODEL_FILE = FILEDIR + '.tar.gz'
-
 
     # Path to frozen detection graph. This is the actual model that is used for the object detection.
     MODELDIR = os.path.join(BASE_DIR, MODEL_NAME)
@@ -86,14 +86,17 @@ def show_image(request):
             if 'frozen_inference_graph.pb' in file_name:
                 tar_file.extract(file, os.getcwd())
 
-    detection_graph = tf.Graph()
+
     with detection_graph.as_default():
         od_graph_def = tf.GraphDef()
         with tf.gfile.GFile(PATH_TO_CKPT, 'rb') as fid:
             serialized_graph = fid.read()
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def, name='')
+        return HttpResponse(MODEL_NAME)
 
+def show_image(request):
+    imageIdx = request.GET['image']
     label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
     categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES,
                                                                 use_display_name=True)
